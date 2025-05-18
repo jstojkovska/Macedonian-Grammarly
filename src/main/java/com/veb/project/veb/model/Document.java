@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Document {
@@ -14,6 +16,8 @@ public class Document {
     @Column(columnDefinition = "TEXT")
     private String content;
     private LocalDateTime createdAt;
+    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VersionHistory> versionHistories = new ArrayList<>();
 //    @ManyToOne
 //    @JoinColumn(name = "owner_id")
 //    private User owner;
