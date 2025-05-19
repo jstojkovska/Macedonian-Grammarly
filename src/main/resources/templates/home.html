@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
             crossorigin="anonymous"></script>
+
     <!--    <style>-->
     <!--        body { font-family: Arial, sans-serif; }-->
     <!--        .sidebar { width: 200px; float: left; padding: 10px; background-color: #f2f2f2; height: 100vh; }-->
@@ -15,25 +16,36 @@
     <!--        .doc-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; background-color: #fff; }-->
     <!--        .doc-actions a { margin-right: 10px; }-->
     <!--    </style>-->
+
     <style>
-        #newDoc{
+        #newDoc {
             width: 150px;
         }
-        #uploadDoc{
+
+        #uploadDoc {
             width: 150px;
+        }
+
+        .clickable-card {
+            cursor: pointer;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .clickable-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-links a {
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
 
 <div class="container-fluid">
-
-    <nav class="navbar navbar-expand-lg ">
+    <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Navbar</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
         </div>
     </nav>
 
@@ -41,51 +53,89 @@
         <div class="col-2">
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" th:href="@{/documents/home}">Documents</a>
+                    <a class="nav-link active" th:href="@{/documents/home}">Documents</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="">Version History</a>
+                    <a class="nav-link active" th:href="@{/history/versions}">Version History</a>
                 </li>
             </ul>
-
         </div>
+
         <div class="col-10 bg-body-secondary">
             <div class="row">
                 <h2 class="display-2">Documents</h2>
+                <div th:if="${searchQuery}">
+                    <h5 class="mt-2">Search Results for "<span th:text="${searchQuery}"></span>"</h5>
+                </div>
             </div>
-            <div class="row">
-                <a class="btn btn-success" th:href="@{/documents/new}" id="newDoc">New Document</a>
-                <a class="btn btn-success" th:href="@{/documents/upload}" id="uploadDoc">Upload Document</a>
 
+            <div class="row mb-3">
+                <form th:action="@{/documents/home}" method="get" class="d-flex align-items-center gap-2">
+                    <a class="btn btn-success" th:href="@{/documents/new}" id="newDoc">New Document</a>
+                    <a class="btn btn-success" th:href="@{/documents/upload}" id="uploadDoc">Upload Document</a>
+                    <input type="text" class="form-control" name="query" style="max-width: 250px;" placeholder="Search..." required>
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
             </div>
-            <h6 class="display-6">Today</h6>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:each="doc : ${documentsToday}">
-                <div class="col">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title" th:text="${doc.title}">Document Title</h5>
-                            <h6 class="card-subtitle mb-2 text-muted" th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}">Created Date</h6>
-                            <p class="card-text" th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}">
 
-                            </p>
-                            <a th:href="@{'/documents/download/' + ${doc.id}}" class="card-link">Download</a>
-                            <a th:href="@{'/documents/delete/' + ${doc.id}}" class="card-link text-danger">Delete</a>
+            <!-- If search query exists -->
+            <div th:if="${searchQuery}">
+                <h5 class="mt-4">Search Results for "<span th:text="${searchQuery}"></span>"</h5>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:each="doc : ${searchResults}">
+                    <div class="col">
+                        <div class="card h-100 clickable-card" th:onclick="'window.location.href=\'/documents/edit/' + ${doc.id} + '\''">
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${doc.title}">Document Title</h5>
+                                <h6 class="card-subtitle mb-2 text-muted"
+                                    th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}">Created</h6>
+                                <p class="card-text"
+                                   th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}"></p>
+                                <div class="action-links">
+                                    <a th:href="@{'/documents/download/' + ${doc.id}}" class="card-link">Download</a>
+                                    <a th:href="@{'/documents/delete/' + ${doc.id}}" class="card-link text-danger">Delete</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <h6 class="display-6">Earlier</h6>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:each="doc : ${documentsEarlier}">
-                <div class="col">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title" th:text="${doc.title}">Document Title</h5>
-                            <h6 class="card-subtitle mb-2 text-muted" th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}">Created Date</h6>
-                            <p class="card-text" th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}">
 
-                            </p>
-                            <a th:href="@{'/documents/download/' + ${doc.id}}" class="card-link">Download</a>
-                            <a th:href="@{'/documents/delete/' + ${doc.id}}" class="card-link text-danger">Delete</a>
+            <!-- If no search query -->
+            <div th:if="${searchQuery == null}">
+                <h6 class="display-6" th:if="${searchQuery == null}">Today</h6>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:each="doc : ${documentsToday}">
+                    <div class="col">
+                        <div class="card h-100 clickable-card" th:onclick="'window.location.href=\'/documents/edit/' + ${doc.id} + '\''">
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${doc.title}">Document Title</h5>
+                                <h6 class="card-subtitle mb-2 text-muted"
+                                    th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}">Created</h6>
+                                <p class="card-text"
+                                   th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}"></p>
+                                <div class="action-links">
+                                    <a th:href="@{'/documents/download/' + ${doc.id}}" class="card-link">Download</a>
+                                    <a th:href="@{'/documents/delete/' + ${doc.id}}" class="card-link text-danger">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="display-6 mt-4" th:if="${searchQuery == null}">Earlier</h6>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:each="doc : ${documentsEarlier}">
+                    <div class="col">
+                        <div class="card h-100 clickable-card" th:onclick="'window.location.href=\'/documents/edit/' + ${doc.id} + '\''">
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${doc.title}">Document Title</h5>
+                                <h6 class="card-subtitle mb-2 text-muted"
+                                    th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}">Created</h6>
+                                <p class="card-text"
+                                   th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}"></p>
+                                <div class="action-links">
+                                    <a th:href="@{'/documents/download/' + ${doc.id}}" class="card-link">Download</a>
+                                    <a th:href="@{'/documents/delete/' + ${doc.id}}" class="card-link text-danger">Delete</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -93,51 +143,50 @@
 
         </div>
     </div>
-
 </div>
 
+<!--
+<div class="sidebar">
+    <h3>Menu</h3>
+    <ul>
+        <li><a th:href="@{/documents/home}">Documents</a></li>
+    </ul>
+</div>
+<div class="main">
+    <h2>Documents</h2>
 
-<!--<div class="sidebar">-->
-<!--    <h3>Menu</h3>-->
-<!--    <ul>-->
-<!--        <li><a th:href="@{/documents/home}">Documents</a></li>-->
+    <form th:action="@{/documents/search}" method="get">
+        <input type="text" name="query" placeholder="Search..." required>
+        <button type="submit">Search</button>
+    </form>
 
-<!--    </ul>-->
-<!--</div>-->
-<!--<div class="main">-->
-<!--    <h2>Documents</h2>-->
+    <br>
+    <a th:href="@{/documents/new}">➕ New Document</a>
+    <a th:href="@{/documents/upload}">⬆ Upload File</a>
 
-<!--    <form th:action="@{/documents/search}" method="get">-->
-<!--        <input type="text" name="query" placeholder="Search..." required>-->
-<!--        <button type="submit">Search</button>-->
-<!--    </form>-->
+    <h3>Today</h3>
+    <div th:each="doc : ${documentsToday}" class="doc-card">
+        <strong th:text="${doc.title}"></strong>
+        <p th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}"></p>
+        <small th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}"></small>
+        <div class="doc-actions">
+            <a th:href="@{'/documents/download/' + ${doc.id}}">Download</a>
+            <a th:href="@{'/documents/delete/' + ${doc.id}}">Delete</a>
+        </div>
+    </div>
 
-<!--    <br>-->
-<!--    <a th:href="@{/documents/new}">➕ New Document</a>-->
-<!--    <a th:href="@{/documents/upload}">⬆ Upload File</a>-->
+    <h3>Earlier</h3>
+    <div th:each="doc : ${documentsEarlier}" class="doc-card">
+        <strong th:text="${doc.title}"></strong>
+        <p th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}"></p>
+        <small th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}"></small>
+        <div class="doc-actions">
+            <a th:href="@{'/documents/download/' + ${doc.id}}">Download</a>
+            <a th:href="@{'/documents/delete/' + ${doc.id}}">Delete</a>
+        </div>
+    </div>
+</div>
+-->
 
-<!--    <h3>Today</h3>-->
-<!--    <div th:each="doc : ${documentsToday}" class="doc-card">-->
-<!--        <strong th:text="${doc.title}"></strong>-->
-<!--        <p th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}"></p>-->
-<!--        <small th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}"></small>-->
-<!--        <div class="doc-actions">-->
-<!--            <a th:href="@{'/documents/download/' + ${doc.id}}">Download</a>-->
-<!--            <a th:href="@{'/documents/delete/' + ${doc.id}}">Delete</a>-->
-<!--        </div>-->
-<!--    </div>-->
-
-<!--    <h3>Earlier</h3>-->
-<!--    <div th:each="doc : ${documentsEarlier}" class="doc-card">-->
-<!--        <strong th:text="${doc.title}"></strong>-->
-<!--        <p th:text="${doc.content.substring(0, T(java.lang.Math).min(100, doc.content.length())) + '...'}"></p>-->
-<!--        <small th:text="${#temporals.format(doc.createdAt, 'dd MMM yyyy HH:mm')}"></small>-->
-<!--        <div class="doc-actions">-->
-<!--            <a th:href="@{'/documents/download/' + ${doc.id}}">Download</a>-->
-<!--            <a th:href="@{'/documents/delete/' + ${doc.id}}">Delete</a>-->
-
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
 </body>
 </html>
