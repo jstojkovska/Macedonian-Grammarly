@@ -31,21 +31,22 @@ public class VersionHistoryController {
     }
 
     @GetMapping("/versions")
-    public String getAll(Model model){
-        List<Document>allDocuments=documentService.getAll();
-        Map<Document,List<VersionHistory>>allVersions=new HashMap<>();
-        for(Document doc:allDocuments){
-            allVersions.put(doc,versionHistoryService.getAll(doc));
+    public String getAll(Model model) {
+        List<Document> allDocuments = documentService.getAll();
+        Map<Document, List<VersionHistory>> allVersions = new HashMap<>();
+        for (Document doc : allDocuments) {
+            allVersions.put(doc, versionHistoryService.getAll(doc));
         }
-        model.addAttribute("versions",allVersions);
+        model.addAttribute("versions", allVersions);
         return "all-version-history";
     }
-    @GetMapping("/download/{id}")
-    public ResponseEntity<Resource>downloadVersion(@PathVariable Long id){
-        VersionHistory vh=versionHistoryService.getById(id);
-        String fileName="version_"+id+".txt";
 
-        ByteArrayResource resource=new ByteArrayResource(vh.getOldContent().getBytes());
+    @GetMapping("/download/{id}")
+    public ResponseEntity<Resource> downloadVersion(@PathVariable Long id) {
+        VersionHistory vh = versionHistoryService.getById(id);
+        String fileName = "version_" + id + ".txt";
+
+        ByteArrayResource resource = new ByteArrayResource(vh.getOldContent().getBytes());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
                 .contentType(MediaType.TEXT_PLAIN)
