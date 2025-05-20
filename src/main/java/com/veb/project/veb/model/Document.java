@@ -18,9 +18,7 @@ public class Document {
     private LocalDateTime createdAt;
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VersionHistory> versionHistories = new ArrayList<>();
-//    @ManyToOne
-//    @JoinColumn(name = "owner_id")
-//    private User owner;
+
 
     public Document(String title, String content) {
         this.title = title;

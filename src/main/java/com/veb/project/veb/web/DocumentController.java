@@ -76,10 +76,14 @@ public class DocumentController {
     }
 
     @PostMapping("/upload")
-    public String handleFileUpload(@RequestParam("title") String title,
-                                   @RequestParam("file") MultipartFile file) {
+    public String handleFileUpload(@RequestParam("file") MultipartFile file) {
         try {
             String content = new String(file.getBytes());
+
+
+            String originalFilename = file.getOriginalFilename();
+            String title = originalFilename != null ? originalFilename.replaceFirst("[.][^.]+$", "") : "Untitled";
+
             documentService.create(title, content);
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,29 +94,33 @@ public class DocumentController {
     }
 
 
+
     @GetMapping("/delete/{id}")
     public String deleteDoc(@PathVariable Long id) {
         documentService.deleteById(id);
         return "redirect:/documents/home";
     }
+
     @PostMapping("/update/{id}")
     public String updateDocument(@PathVariable Long id, @RequestParam String content) {
         Document doc = documentService.getById(id);
         documentService.update(doc, content);
         return "redirect:/documents/home";
     }
-    @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> downloadVersion(@PathVariable Long id){
-        Document document=documentService.getById(id);
-        String fileName="version_"+id+".txt";
 
-        ByteArrayResource resource=new ByteArrayResource(document.getContent().getBytes());
+    @GetMapping("/download/{id}")
+    public ResponseEntity<Resource> downloadVersion(@PathVariable Long id) {
+        Document document = documentService.getById(id);
+        String fileName = "version_" + id + ".txt";
+
+        ByteArrayResource resource = new ByteArrayResource(document.getContent().getBytes());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
                 .contentType(MediaType.TEXT_PLAIN)
                 .contentLength(resource.contentLength())
                 .body(resource);
     }
+
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         Document doc = documentService.getById(id);
@@ -120,29 +128,5 @@ public class DocumentController {
         return "edit-document";
     }
 
-//    @GetMapping("/home")
-//    public String searchDocuments(@RequestParam("query") String query, Model model) {
-//        List<Document> allDocs = documentService.getAll();
-//
-//        LocalDate today = LocalDate.now();
-//        List<Document> todayDocs = new ArrayList<>();
-//        List<Document> earlierDocs = new ArrayList<>();
-//
-//        for (Document doc : allDocs) {
-//            if (doc.getCreatedAt().toLocalDate().isEqual(today)) {
-//                todayDocs.add(doc);
-//            } else {
-//                earlierDocs.add(doc);
-//            }
-//        }
-//
-//        List<Document> searchResults = documentService.search(query);
-//        model.addAttribute("documentsToday", todayDocs);
-//        model.addAttribute("documentsEarlier", earlierDocs);
-//        model.addAttribute("searchResults", searchResults);
-//        model.addAttribute("query", query);
-//
-//        return "home";
-//    }
 
 }

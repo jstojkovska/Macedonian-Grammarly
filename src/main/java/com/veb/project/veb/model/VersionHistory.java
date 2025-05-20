@@ -11,6 +11,7 @@ public class VersionHistory {
     private Long id;
 
     private String oldTitle;
+    @Column(name = "old_content", columnDefinition = "TEXT")
     private String oldContent;
     private LocalDateTime changedAt;
     @ManyToOne
