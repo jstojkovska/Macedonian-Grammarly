@@ -19,7 +19,6 @@ public class Document {
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VersionHistory> versionHistories = new ArrayList<>();
 
-
     public Document(String title, String content) {
         this.title = title;
         this.content = content;

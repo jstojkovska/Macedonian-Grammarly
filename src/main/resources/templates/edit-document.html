@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <title>Edit Document</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .wrong-word {
+            color: red;
+            font-weight: bold;
+        }
+        .correction {
+            color: green;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-5">
@@ -14,13 +24,89 @@
             <input class="form-control" th:value="${document.title}" disabled>
         </div>
         <div class="mb-3">
-            <label for="content" class="form-label">Content</label>
-            <textarea id="content" name="content" class="form-control" rows="10" required
+            <label for="contentInput" class="form-label">Content</label>
+            <textarea id="contentInput" name="content" class="form-control" rows="10" required
                       th:text="${document.content}"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a th:href="@{/documents/home}" class="btn btn-secondary">Cancel</a>
+
+        <div class="mb-3 text-end">
+            <button type="button" class="btn btn-secondary me-2" onclick="checkGrammar()">Check Grammar</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a th:href="@{/documents/home}" class="btn btn-secondary">Cancel</a>
+        </div>
+
+        <!-- Suggestion box -->
+        <div id="grammarResult" class="border rounded p-3 bg-white shadow-sm mt-4 d-none">
+            <h6 class="fw-bold">Предлози за исправки:</h6>
+            <div id="correctionContent"></div>
+            <button type="button" class="btn btn-success btn-sm mt-2" onclick="applyCorrections()">Accept All</button>
+        </div>
     </form>
 </div>
+
+<script>
+    let correctedText = "";
+    let correctionBoxVisible = false;
+
+    function checkGrammar() {
+        const textArea = document.getElementById("contentInput");
+        const text = textArea.value;
+        correctionBoxVisible = false;
+
+        fetch("/documents/check-text", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({original: text})
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log("Одговор:", data);
+
+                if (data.length === 0 || data[0].error) {
+                    document.getElementById("correctionContent").innerHTML =
+                        `<div class="text-danger">${data[0]?.error || "Нема корекции."}</div>`;
+                    document.getElementById("grammarResult").classList.remove("d-none");
+                    return;
+                }
+
+                let highlighted = text;
+                correctedText = text;
+
+                data.forEach(pair => {
+                    const wrong = pair.wrong;
+                    const correct = pair.correct;
+
+                    const regex = new RegExp(`(?<!\\S)${escapeRegex(wrong)}(?!\\S)`, 'g');
+
+                    highlighted = highlighted.replace(regex,
+                        `<span class="wrong-word">${wrong}</span><span class="correction"> (${correct})</span>`
+                    );
+
+                    correctedText = correctedText.replace(regex, correct);
+                });
+
+                document.getElementById("correctionContent").innerHTML = `<p>${highlighted}</p>`;
+                document.getElementById("grammarResult").classList.remove("d-none");
+                correctionBoxVisible = true;
+            })
+            .catch(() => {
+                document.getElementById("correctionContent").innerHTML =
+                    `<div class="text-danger">Се случи грешка при проверка.</div>`;
+                document.getElementById("grammarResult").classList.remove("d-none");
+            });
+    }
+
+    function escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function applyCorrections() {
+        if (correctionBoxVisible) {
+            document.getElementById("contentInput").value = correctedText;
+            document.getElementById("grammarResult").classList.add("d-none");
+        }
+    }
+</script>
+
 </body>
 </html>

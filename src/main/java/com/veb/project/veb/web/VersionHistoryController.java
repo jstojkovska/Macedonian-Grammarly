@@ -2,8 +2,8 @@ package com.veb.project.veb.web;
 
 import com.veb.project.veb.model.Document;
 import com.veb.project.veb.model.VersionHistory;
-import com.veb.project.veb.service.DocumentService;
-import com.veb.project.veb.service.VersionHistoryService;
+import com.veb.project.veb.service.impl.DocumentServiceImpl;
+import com.veb.project.veb.service.impl.VersionHistoryServiceImpl;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -22,20 +22,20 @@ import java.util.Map;
 @Controller
 @RequestMapping("/history")
 public class VersionHistoryController {
-    private final VersionHistoryService versionHistoryService;
-    private final DocumentService documentService;
+    private final VersionHistoryServiceImpl versionHistoryServiceImpl;
+    private final DocumentServiceImpl documentServiceImpl;
 
-    public VersionHistoryController(VersionHistoryService versionHistoryService, DocumentService documentService) {
-        this.versionHistoryService = versionHistoryService;
-        this.documentService = documentService;
+    public VersionHistoryController(VersionHistoryServiceImpl versionHistoryServiceImpl, DocumentServiceImpl documentServiceImpl) {
+        this.versionHistoryServiceImpl = versionHistoryServiceImpl;
+        this.documentServiceImpl = documentServiceImpl;
     }
 
     @GetMapping("/versions")
     public String getAll(Model model) {
-        List<Document> allDocuments = documentService.getAll();
+        List<Document> allDocuments = documentServiceImpl.getAll();
         Map<Document, List<VersionHistory>> allVersions = new HashMap<>();
         for (Document doc : allDocuments) {
-            allVersions.put(doc, versionHistoryService.getAll(doc));
+            allVersions.put(doc, versionHistoryServiceImpl.getAll(doc));
         }
         model.addAttribute("versions", allVersions);
         return "all-version-history";
@@ -43,7 +43,7 @@ public class VersionHistoryController {
 
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> downloadVersion(@PathVariable Long id) {
-        VersionHistory vh = versionHistoryService.getById(id);
+        VersionHistory vh = versionHistoryServiceImpl.getById(id);
         String fileName = "version_" + id + ".txt";
 
         ByteArrayResource resource = new ByteArrayResource(vh.getOldContent().getBytes());
