@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>My Documents</title>
@@ -67,7 +68,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-2 sidebar">
+        <div class="col-2 sidebar d-flex flex-column justify-content-between">
             <ul class="nav flex-column px-3">
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/documents/home}">Documents</a>
@@ -76,7 +77,21 @@
                     <a class="nav-link" th:href="@{/history/versions}">Version History</a>
                 </li>
             </ul>
+
+            <div class="px-3 pb-3">
+                <div sec:authorize="isAnonymous()">
+                    <a th:href="@{/register}" class="d-block text-primary mb-2">Sign Up</a>
+                    <a th:href="@{/login}" class="d-block text-primary">Login</a>
+                </div>
+
+                <div sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="btn btn-link text-danger p-0">Logout</button>
+                    </form>
+                </div>
+            </div>
         </div>
+
 
         <div class="col-10 main-content">
             <h2 class="mb-4">Documents</h2>
@@ -179,6 +194,7 @@
             <div th:if="${searchQuery == null and (documentsToday == null or documentsToday.isEmpty()) and (documentsEarlier == null or documentsEarlier.isEmpty())}">
                 <p class="text-muted">No documents available yet. Create or upload one above.</p>
             </div>
+
         </div>
     </div>
 </div>

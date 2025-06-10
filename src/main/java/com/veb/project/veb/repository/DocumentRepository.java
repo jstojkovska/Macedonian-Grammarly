@@ -9,4 +9,8 @@ import java.util.List;
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     List<Document> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(String t, String c);
+    List<Document> findAllByUser_Username(String username);
+    List<Document> findByUser_UsernameAndTitleContainingIgnoreCase(String username, String query);
+    List<Document> findAllByUserIsNull();
+
 }

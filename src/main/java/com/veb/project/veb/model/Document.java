@@ -19,6 +19,9 @@ public class Document {
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VersionHistory> versionHistories = new ArrayList<>();
 
+    @ManyToOne
+    private User user;
+
     public Document(String title, String content) {
         this.title = title;
         this.content = content;
@@ -60,4 +63,11 @@ public class Document {
         this.createdAt = createdAt;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,11 +33,20 @@ public class VersionHistoryController {
     }
 
     @GetMapping("/versions")
-    public String getAll(Model model) {
-        List<Document> allDocuments = documentServiceImpl.getAll();
+    public String getAll(Model model, Principal principal) {
+        List<Document> allDocuments = new ArrayList<>();
+        if(principal!=null){
+            String username= principal.getName();
+            allDocuments=documentServiceImpl.getAllForUser(username);
+        }else{
+            allDocuments=documentServiceImpl.getAllWithoutUser();
+        }
         Map<Document, List<VersionHistory>> allVersions = new HashMap<>();
         for (Document doc : allDocuments) {
-            allVersions.put(doc, versionHistoryServiceImpl.getAll(doc));
+            List<VersionHistory>versions=versionHistoryServiceImpl.getAll(doc);
+            if(!versions.isEmpty()){
+                allVersions.put(doc, versions);
+            }
         }
         model.addAttribute("versions", allVersions);
         return "all-version-history";

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,16 +33,23 @@ public class DocumentController {
     }
 
     @GetMapping("/home")
-    public String homePage(Model model, @RequestParam(value = "query", required = false) String query) {
+    public String homePage(Model model, @RequestParam(value = "query", required = false) String query, Principal principal) {
+
         List<Document> allDocs;
 
-        if (query != null && !query.isEmpty()) {
-            List<Document> results = documentServiceImpl.search(query);
-            model.addAttribute("searchQuery", query);
-            model.addAttribute("searchResults", results);
-        } else {
-            allDocs = documentServiceImpl.getAll();
+        if(principal!=null){
+            String username= principal.getName();
+            if (query != null && !query.isEmpty()) {
+                List<Document> results = documentServiceImpl.searchByUsername(username,query);
+                model.addAttribute("searchQuery", query);
+                model.addAttribute("searchResults", results);
+                return "home";
+            }
+            allDocs = documentServiceImpl.getAllForUser(username);
 
+        } else {
+            allDocs = documentServiceImpl.getAllWithoutUser();
+        }
             LocalDate today = LocalDate.now();
             List<Document> todayDocs = new ArrayList<>();
             List<Document> earlierDocs = new ArrayList<>();
@@ -56,9 +64,9 @@ public class DocumentController {
 
             model.addAttribute("documentsToday", todayDocs);
             model.addAttribute("documentsEarlier", earlierDocs);
-        }
 
-        return "home";
+
+            return "home";
     }
 
     //ova mislam ne ni mi treba
@@ -69,8 +77,13 @@ public class DocumentController {
 
     @PostMapping("/new-document")
     public String createNewDocument(@RequestParam String title,
-                                    @RequestParam String content) {
-        documentServiceImpl.create(title, content);
+                                    @RequestParam String content,Principal principal) {
+        if (principal != null) {
+            String username = principal.getName();
+            documentServiceImpl.create(title,content,username);
+        }else {
+            documentServiceImpl.createWithoutUser(title, content);
+        }
         return "redirect:/documents/home";
     }
 
@@ -80,19 +93,26 @@ public class DocumentController {
     }
 
     @PostMapping("/upload")
-    public String handleFileUpload(@RequestParam("file") MultipartFile file) {
+    public String handleFileUpload(@RequestParam("file") MultipartFile file, Principal principal) {
         try {
             String content = new String(file.getBytes());
             String originalFilename = file.getOriginalFilename();
             String title = originalFilename != null ? originalFilename.replaceFirst("[.][^.]+$", "") : "Untitled";
 
-            Document savedDoc = documentServiceImpl.create(title, content);
-            return "redirect:/documents/edit/" + savedDoc.getId();
+            if (principal != null) {
+                String username = principal.getName();
+                Document savedDoc = documentServiceImpl.create(title, content, username);
+                return "redirect:/documents/edit/" + savedDoc.getId();
+            } else {
+                return "redirect:/documents/home?error=unauthorized";
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/documents/upload?error";
         }
     }
+
 
 
     @GetMapping("/delete/{id}")
