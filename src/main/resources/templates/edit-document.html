@@ -53,7 +53,7 @@
         const text = textArea.value;
         correctionBoxVisible = false;
 
-        fetch("/documents/check-text", {
+        fetch("http://localhost:8080/documents/check-text", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({original: text})

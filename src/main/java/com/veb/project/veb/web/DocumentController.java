@@ -151,6 +151,8 @@ public class DocumentController {
     @PostMapping("/check-text")
     @ResponseBody
     public List<Map<String, String>> checkText(@RequestBody Map<String, String> payload) {
+        System.out.println("🔍 checkText() повикан со: " + payload);
+
         String originalText = payload.get("original");
 
         HttpHeaders headers = new HttpHeaders();
@@ -168,7 +170,7 @@ public class DocumentController {
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
             String rawText = response.getBody();
 
-            System.out.println("📦 RAW text from Beeceptor:\n" + rawText);
+            System.out.println("RAW text from Beeceptor:\n" + rawText);
 
             if (rawText == null || !rawText.contains("correction")) {
                 return List.of(Map.of("error", "Нема корекција."));

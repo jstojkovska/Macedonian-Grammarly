@@ -14,22 +14,24 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login","/documents/**","/history/**", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/register", "/login", "/documents/check-text", "/documents/home", "/documents/edit/**", "/history/**", "/css/**", "/js/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")                      // GET /login ја прикажува формата
-                        .defaultSuccessUrl("/documents/home", true) // Каде одиш после успешен login
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/documents/home", true)
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/documents/home")
                         .permitAll()
-                );
+                )
+                .csrf(csrf -> csrf.disable()); // 👈 дозволи POST без CSRF токен за fetch
 
         return http.build();
     }
+
 
 //    @Bean
 //    public PasswordEncoder passwordEncoder() {
