@@ -3,6 +3,7 @@ package com.veb.project.veb.web;
 import com.veb.project.veb.model.Document;
 import com.veb.project.veb.service.DocumentService;
 import com.veb.project.veb.service.impl.DocumentServiceImpl;
+import com.veb.project.veb.utils.TextUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
@@ -201,7 +202,7 @@ public class DocumentController {
                     if (!normalizedWord.equals(correction.toLowerCase()) &&
                             normalizedWord.length() > 3 &&
                             correction.length() > 3 &&
-                            levenshtein(normalizedWord, correction.toLowerCase()) <= 2) {
+                            TextUtils.levenshtein(normalizedWord, correction.toLowerCase()) <= 2) {
                         corrections.add(Map.of("wrong", word, "correct", correction));
                         break;
                     }
@@ -219,21 +220,5 @@ public class DocumentController {
             return List.of(Map.of("error", "Грешка при поврзување со сервисот."));
         }
     }
-
-    private int levenshtein(String a, String b) {
-        int[][] dp = new int[a.length() + 1][b.length() + 1];
-
-        for (int i = 0; i <= a.length(); i++) {
-            for (int j = 0; j <= b.length(); j++) {
-                if (i == 0) dp[i][j] = j;
-                else if (j == 0) dp[i][j] = i;
-                else if (a.charAt(i - 1) == b.charAt(j - 1)) dp[i][j] = dp[i - 1][j - 1];
-                else dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i][j - 1], dp[i - 1][j]));
-            }
-        }
-
-        return dp[a.length()][b.length()];
-    }
-
 
 }
