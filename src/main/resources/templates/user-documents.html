@@ -22,6 +22,9 @@
       <td th:text="${doc.createdAt != null ? doc.createdAt.format(T(java.time.format.DateTimeFormatter).ofPattern('dd-MM-yyyy')) : ''}"></td>
       <td>
         <a th:href="@{/documents/download/{id}(id=${doc.id})}" class="btn btn-sm btn-primary">Download</a>
+        <a th:href="@{'/documents/edit/' + ${doc.id}}" class="btn btn-sm btn-warning">Edit</a>
+        <a th:href="@{'/documents/delete/' + ${doc.id}}" class="btn btn-sm btn-danger"
+           onclick="return confirm('Are you sure you want to delete this document?');">Delete</a>
       </td>
     </tr>
     </tbody>
