@@ -2,11 +2,9 @@ package com.veb.project.veb.web;
 
 import com.veb.project.veb.model.Document;
 import com.veb.project.veb.service.DocumentService;
-import com.veb.project.veb.service.impl.DocumentServiceImpl;
-import com.veb.project.veb.utils.TextUtils;
+import com.veb.project.veb.service.TextCheckService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.client.RestTemplate;
 
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,9 +24,11 @@ import java.util.Map;
 public class DocumentController {
 
     private final DocumentService documentServiceImpl;
+    private final TextCheckService textCheckService;
 
-    public DocumentController(DocumentService documentServiceImpl) {
+    public DocumentController(DocumentService documentServiceImpl, TextCheckService textCheckService) {
         this.documentServiceImpl = documentServiceImpl;
+        this.textCheckService = textCheckService;
     }
 
     @GetMapping("/home")
@@ -152,73 +150,8 @@ public class DocumentController {
     @PostMapping("/check-text")
     @ResponseBody
     public List<Map<String, String>> checkText(@RequestBody Map<String, String> payload) {
-        System.out.println("🔍 checkText() повикан со: " + payload);
-
         String originalText = payload.get("original");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        Map<String, String> requestBody = new HashMap<>();
-        requestBody.put("original", originalText);
-
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
-        String url = "https://macedoniangrammarly.free.beeceptor.com/";
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
-            String rawText = response.getBody();
-
-            System.out.println("RAW text from Beeceptor:\n" + rawText);
-
-            if (rawText == null || !rawText.contains("correction")) {
-                return List.of(Map.of("error", "Нема корекција."));
-            }
-
-            List<String> correctionValues = new ArrayList<>();
-            for (String line : rawText.split("\n")) {
-                if (line.trim().startsWith("\"correction\"")) {
-                    String value = line.split(":", 2)[1].replace("\"", "").replace(",", "").trim();
-                    correctionValues.add(value);
-                }
-            }
-
-            String[] originalWords = originalText.split("\\s+");
-            List<Map<String, String>> corrections = new ArrayList<>();
-
-            for (String correction : correctionValues) {
-                String normalizedCorrection = correction.replace(" ", "").toLowerCase();
-
-                for (String word : originalWords) {
-                    String normalizedWord = word.toLowerCase();
-
-                    if (normalizedWord.equals(normalizedCorrection)) {
-                        corrections.add(Map.of("wrong", word, "correct", correction));
-                        break;
-                    }
-
-                    if (!normalizedWord.equals(correction.toLowerCase()) &&
-                            normalizedWord.length() > 3 &&
-                            correction.length() > 3 &&
-                            TextUtils.levenshtein(normalizedWord, correction.toLowerCase()) <= 2) {
-                        corrections.add(Map.of("wrong", word, "correct", correction));
-                        break;
-                    }
-                }
-            }
-
-            if (corrections.isEmpty()) {
-                return List.of(Map.of("error", "Не се најдени зборови за замена."));
-            }
-
-            return corrections;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return List.of(Map.of("error", "Грешка при поврзување со сервисот."));
-        }
+        return textCheckService.checkText(originalText);
     }
 
 }
