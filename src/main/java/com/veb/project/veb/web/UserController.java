@@ -26,6 +26,11 @@ public class UserController {
             model.addAttribute("error", "Username already exists.");
             return "register";
         }
+        if (user.getUsername().equalsIgnoreCase("admin")) {
+            user.setRole("ADMIN");
+        } else {
+            user.setRole("USER");
+        }
         userService.registerUser(user);
         return "redirect:/login";
     }

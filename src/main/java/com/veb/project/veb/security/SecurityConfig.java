@@ -15,6 +15,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/register", "/login", "/documents/check-text", "/documents/home", "/documents/edit/**", "/history/**", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/admin/**")
+                        .hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -27,14 +29,8 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/documents/home")
                         .permitAll()
                 )
-                .csrf(csrf -> csrf.disable()); // 👈 дозволи POST без CSRF токен за fetch
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
-
-
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
 }

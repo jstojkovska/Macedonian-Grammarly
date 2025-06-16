@@ -13,7 +13,4 @@ public interface DocumentService {
     void update(Document doc, String newContent);
     List<Document> getAllForUser(String username);
     List<Document> searchByUsername(String username, String query);
-    Document createWithoutUser(String title, String content);
-    List<Document> getAllWithoutUser();
-
 }

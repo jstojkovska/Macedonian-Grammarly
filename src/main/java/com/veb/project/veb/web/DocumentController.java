@@ -34,7 +34,7 @@ public class DocumentController {
     @GetMapping("/home")
     public String homePage(Model model, @RequestParam(value = "query", required = false) String query, Principal principal) {
 
-        List<Document> allDocs;
+        List<Document> allDocs=new ArrayList<>();
 
         if(principal!=null){
             String username= principal.getName();
@@ -46,26 +46,24 @@ public class DocumentController {
             }
             allDocs = documentServiceImpl.getAllForUser(username);
 
-        } else {
-            allDocs = documentServiceImpl.getAllWithoutUser();
         }
-            LocalDate today = LocalDate.now();
-            List<Document> todayDocs = new ArrayList<>();
-            List<Document> earlierDocs = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        List<Document> todayDocs = new ArrayList<>();
+        List<Document> earlierDocs = new ArrayList<>();
 
-            for (Document doc : allDocs) {
-                if (doc.getCreatedAt().toLocalDate().isEqual(today)) {
-                    todayDocs.add(doc);
-                } else {
-                    earlierDocs.add(doc);
-                }
+        for (Document doc : allDocs) {
+            if (doc.getCreatedAt().toLocalDate().isEqual(today)) {
+                todayDocs.add(doc);
+            } else {
+                earlierDocs.add(doc);
             }
+        }
 
-            model.addAttribute("documentsToday", todayDocs);
-            model.addAttribute("documentsEarlier", earlierDocs);
+        model.addAttribute("documentsToday", todayDocs);
+        model.addAttribute("documentsEarlier", earlierDocs);
 
 
-            return "home";
+        return "home";
     }
 
     //ova mislam ne ni mi treba
@@ -80,8 +78,6 @@ public class DocumentController {
         if (principal != null) {
             String username = principal.getName();
             documentServiceImpl.create(title,content,username);
-        }else {
-            documentServiceImpl.createWithoutUser(title, content);
         }
         return "redirect:/documents/home";
     }

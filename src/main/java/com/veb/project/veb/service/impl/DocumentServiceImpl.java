@@ -72,22 +72,4 @@ public class DocumentServiceImpl implements DocumentService {
     public List<Document> searchByUsername(String username, String query) {
         return documentRepository.findByUser_UsernameAndTitleContainingIgnoreCase(username, query);
     }
-
-    @Override
-    public Document createWithoutUser(String title, String content) {
-        Document doc = new Document();
-        doc.setTitle(title);
-        doc.setContent(content);
-        doc.setCreatedAt(LocalDateTime.now());
-        Document savedDoc = documentRepository.save(doc);
-
-        versionHistoryServiceImpl.saveVersion(savedDoc);
-
-        return savedDoc;
-    }
-
-    @Override
-    public List<Document> getAllWithoutUser() {
-        return documentRepository.findAllByUserIsNull();
-    }
 }

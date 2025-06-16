@@ -38,8 +38,6 @@ public class VersionHistoryController {
         if(principal!=null){
             String username= principal.getName();
             allDocuments=documentServiceImpl.getAllForUser(username);
-        }else{
-            allDocuments=documentServiceImpl.getAllWithoutUser();
         }
         Map<Document, List<VersionHistory>> allVersions = new HashMap<>();
         for (Document doc : allDocuments) {
