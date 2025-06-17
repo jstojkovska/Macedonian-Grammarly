@@ -76,7 +76,13 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/history/versions}">Version History</a>
                 </li>
+                <li class="nav-item">
+                    <div sec:authorize="hasRole('ADMIN')" class="mb-2">
+                        <a th:href="@{/admin/dashboard}" class="nav-link text-success fw-bold">Admin Dashboard</a>
+                    </div>
+                </li>
             </ul>
+
 
             <div class="px-3 pb-3">
                 <div sec:authorize="isAnonymous()">
@@ -98,24 +104,28 @@
 
             <div class="row align-items-center mb-4">
 
-<!--                document -->
+                <!--                document -->
                 <div class="col-auto d-flex align-items-center gap-2">
                     <a class="btn btn-success" th:href="@{/documents/new}">New Document</a>
 
-<!--                    upload kopce-->
+                    <!--                    upload kopce-->
                     <!-- upload kopce -->
-                    <form th:action="@{/documents/upload}" method="post" enctype="multipart/form-data" id="uploadForm" class="d-inline">
-                        <a class="btn btn-outline-secondary" onclick="document.getElementById('fileInput').click()">Upload File</a>
-                        <input type="file" id="fileInput" name="file" style="display: none;" onchange="document.getElementById('uploadForm').submit()" />
+                    <form th:action="@{/documents/upload}" method="post" enctype="multipart/form-data" id="uploadForm"
+                          class="d-inline">
+                        <a class="btn btn-outline-secondary" onclick="document.getElementById('fileInput').click()">Upload
+                            File</a>
+                        <input type="file" id="fileInput" name="file" style="display: none;"
+                               onchange="document.getElementById('uploadForm').submit()"/>
                     </form>
 
                 </div>
 
-<!--                kopce search-->
+                <!--                kopce search-->
                 <div class="col d-flex justify-content-center">
                     <form th:action="@{/documents/home}" method="get" class="d-flex align-items-center gap-2">
-                        <input type="text" class="form-control" name="query" placeholder="Search..." required style="max-width: 300px;">
-<!--                        <button class="btn btn-outline-primary" type="submit">Search</button>-->
+                        <input type="text" class="form-control" name="query" placeholder="Search..." required
+                               style="max-width: 300px;">
+                        <!--                        <button class="btn btn-outline-primary" type="submit">Search</button>-->
                     </form>
                 </div>
 
@@ -124,7 +134,7 @@
             </div>
 
 
-<!--            search prikaz na doc-->
+            <!--            search prikaz na doc-->
             <div th:if="${searchQuery}">
                 <h5 class="mb-3">Search Results for "<span th:text="${searchQuery}"></span>"</h5>
                 <div class="row g-2">
@@ -146,7 +156,7 @@
                 </div>
             </div>
 
-<!--            today-->
+            <!--            today-->
             <div th:if="${searchQuery == null and documentsToday != null and !documentsToday.isEmpty()}">
                 <div class="doc-section-title">Today</div>
                 <div class="row g-2">
@@ -168,7 +178,7 @@
                 </div>
             </div>
 
-<!--            earlier-->
+            <!--            earlier-->
             <div th:if="${searchQuery == null and documentsEarlier != null and !documentsEarlier.isEmpty()}">
                 <div class="doc-section-title">Earlier</div>
                 <div class="row g-2">
@@ -190,7 +200,7 @@
                 </div>
             </div>
 
-<!--            prikaz ako nema nisto-->
+            <!--            prikaz ako nema nisto-->
             <div th:if="${searchQuery == null and (documentsToday == null or documentsToday.isEmpty()) and (documentsEarlier == null or documentsEarlier.isEmpty())}">
                 <p class="text-muted">No documents available yet. Create or upload one above.</p>
             </div>
