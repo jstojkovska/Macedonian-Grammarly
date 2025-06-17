@@ -19,6 +19,7 @@
 <div class="container mt-5">
     <h2>Edit Document</h2>
     <form th:action="@{'/documents/update/' + ${document.id}}" method="post">
+        <input type="hidden" name="redirectBackTo" th:value="${redirectBackTo}" />
         <div class="mb-3">
             <label class="form-label">Title</label>
             <input class="form-control" th:value="${document.title}" disabled>

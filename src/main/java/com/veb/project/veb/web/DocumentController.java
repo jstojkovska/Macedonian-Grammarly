@@ -23,45 +23,31 @@ import java.util.Map;
 @RequestMapping("/documents")
 public class DocumentController {
 
-    private final DocumentService documentServiceImpl;
+    private final DocumentService documentService;
     private final TextCheckService textCheckService;
 
-    public DocumentController(DocumentService documentServiceImpl, TextCheckService textCheckService) {
-        this.documentServiceImpl = documentServiceImpl;
+    public DocumentController(DocumentService documentService, TextCheckService textCheckService) {
+        this.documentService = documentService;
         this.textCheckService = textCheckService;
     }
 
     @GetMapping("/home")
     public String homePage(Model model, @RequestParam(value = "query", required = false) String query, Principal principal) {
 
-        List<Document> allDocs=new ArrayList<>();
+        if (principal != null) {
+            String username = principal.getName();
 
-        if(principal!=null){
-            String username= principal.getName();
             if (query != null && !query.isEmpty()) {
-                List<Document> results = documentServiceImpl.searchByUsername(username,query);
+                List<Document> results = documentService.searchByUsername(username, query);
                 model.addAttribute("searchQuery", query);
                 model.addAttribute("searchResults", results);
                 return "home";
             }
-            allDocs = documentServiceImpl.getAllForUser(username);
 
+            Map<String, List<Document>> splitDocs = documentService.getSplitDocuments(username);
+            model.addAttribute("documentsToday", splitDocs.get("today"));
+            model.addAttribute("documentsEarlier", splitDocs.get("earlier"));
         }
-        LocalDate today = LocalDate.now();
-        List<Document> todayDocs = new ArrayList<>();
-        List<Document> earlierDocs = new ArrayList<>();
-
-        for (Document doc : allDocs) {
-            if (doc.getCreatedAt().toLocalDate().isEqual(today)) {
-                todayDocs.add(doc);
-            } else {
-                earlierDocs.add(doc);
-            }
-        }
-
-        model.addAttribute("documentsToday", todayDocs);
-        model.addAttribute("documentsEarlier", earlierDocs);
-
 
         return "home";
     }
@@ -76,7 +62,7 @@ public class DocumentController {
                                     @RequestParam String content,Principal principal) {
         if (principal != null) {
             String username = principal.getName();
-            documentServiceImpl.create(title,content,username);
+            documentService.create(title,content,username);
         }
         return "redirect:/documents/home";
     }
@@ -88,43 +74,48 @@ public class DocumentController {
 
     @PostMapping("/upload")
     public String handleFileUpload(@RequestParam("file") MultipartFile file, Principal principal) {
-        try {
-            String content = new String(file.getBytes());
-            String originalFilename = file.getOriginalFilename();
-            String title = originalFilename != null ? originalFilename.replaceFirst("[.][^.]+$", "") : "Untitled";
-
-            if (principal != null) {
-                String username = principal.getName();
-                Document savedDoc = documentServiceImpl.create(title, content, username);
+        if (principal != null) {
+            String username = principal.getName();
+            try {
+                Document savedDoc = documentService.handleFileUpload(file, username);
                 return "redirect:/documents/edit/" + savedDoc.getId();
-            } else {
-                return "redirect:/documents/home?error=unauthorized";
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                return "redirect:/documents/upload?error=processing";
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "redirect:/documents/upload?error";
+        } else {
+            return "redirect:/documents/home?error=unauthorized";
         }
     }
 
-
-
     @GetMapping("/delete/{id}")
-    public String deleteDoc(@PathVariable Long id) {
-        documentServiceImpl.deleteById(id);
+    public String deleteDoc(@PathVariable Long id,
+                            @RequestParam(value = "redirectBackTo", required = false) String redirectBackTo) {
+        documentService.deleteById(id);
+
+        if (redirectBackTo != null && !redirectBackTo.isBlank()) {
+            return "redirect:" + redirectBackTo;
+        }
         return "redirect:/documents/home";
     }
+
 
     @PostMapping("/update/{id}")
-    public String updateDocument(@PathVariable Long id, @RequestParam String content) {
-        Document doc = documentServiceImpl.getById(id);
-        documentServiceImpl.update(doc, content);
+    public String updateDocument(@PathVariable Long id,
+                                 @RequestParam String content,
+                                 @RequestParam(required = false) String redirectBackTo) {
+        documentService.updateById(id, content);
+
+        if (redirectBackTo != null && !redirectBackTo.isBlank()) {
+            return "redirect:" + redirectBackTo;
+        }
         return "redirect:/documents/home";
     }
+
 
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> downloadVersion(@PathVariable Long id) {
-        Document document = documentServiceImpl.getById(id);
+        Document document = documentService.getById(id);
         String fileName = "version_" + id + ".txt";
 
         ByteArrayResource resource = new ByteArrayResource(document.getContent().getBytes());
@@ -136,11 +127,15 @@ public class DocumentController {
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        Document doc = documentServiceImpl.getById(id);
+    public String showEditForm(@PathVariable Long id,
+                               @RequestParam(value = "redirectBackTo", required = false) String redirectBackTo,
+                               Model model) {
+        Document doc = documentService.getById(id);
         model.addAttribute("document", doc);
+        model.addAttribute("redirectBackTo", redirectBackTo);
         return "edit-document";
     }
+
 
     @PostMapping("/check-text")
     @ResponseBody
