@@ -66,7 +66,6 @@ public class DocumentController {
         return "home";
     }
 
-    //ova mislam ne ni mi treba
     @GetMapping("/new")
     public String showNewForm() {
         return "new-document";
