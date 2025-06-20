@@ -72,21 +72,28 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id);
     }
 
+    //bidejki nemav dodadeno lista od dokumenti vo User i zatoa morav vaka racno
+//    @Transactional
+//    @Override
+//    public void deleteById(Long id) {
+//        Optional<User> optionalUser = userRepository.findById(id);
+//        if (optionalUser.isPresent()) {
+//            User user = optionalUser.get();
+//
+//            List<Document> userDocuments = documentRepository.findAllByUser(user);
+//            for (Document doc : userDocuments) {
+//                versionHistoryRepository.deleteAllByDocument(doc);
+//                documentRepository.delete(doc);
+//            }
+//
+//            userRepository.deleteById(id);
+//        }
+//    }
+
     @Transactional
     @Override
     public void deleteById(Long id) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-
-            List<Document> userDocuments = documentRepository.findAllByUser(user);
-            for (Document doc : userDocuments) {
-                versionHistoryRepository.deleteAllByDocument(doc);
-                documentRepository.delete(doc);
-            }
-
-            userRepository.deleteById(id);
-        }
+        userRepository.deleteById(id);
     }
 
     @Override

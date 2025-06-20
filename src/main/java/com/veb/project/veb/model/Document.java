@@ -18,7 +18,6 @@ public class Document {
     private LocalDateTime createdAt;
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VersionHistory> versionHistories = new ArrayList<>();
-
     @ManyToOne
     private User user;
 
@@ -69,5 +68,13 @@ public class Document {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public List<VersionHistory> getVersionHistories() {
+        return versionHistories;
+    }
+
+    public void setVersionHistories(List<VersionHistory> versionHistories) {
+        this.versionHistories = versionHistories;
     }
 }

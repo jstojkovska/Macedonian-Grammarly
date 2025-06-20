@@ -66,12 +66,6 @@ public class DocumentController {
         }
         return "redirect:/documents/home";
     }
-
-    @GetMapping("/upload")
-    public String uploadForm() {
-        return "/upload";
-    }
-
     @PostMapping("/upload")
     public String handleFileUpload(@RequestParam("file") MultipartFile file, Principal principal) {
         if (principal != null) {

@@ -2,6 +2,7 @@ package com.veb.project.veb.service.impl;
 
 import com.veb.project.veb.model.Document;
 import com.veb.project.veb.model.User;
+import com.veb.project.veb.model.VersionHistory;
 import com.veb.project.veb.repository.DocumentRepository;
 import com.veb.project.veb.repository.UserRepository;
 import com.veb.project.veb.service.DocumentService;
@@ -39,7 +40,15 @@ public class DocumentServiceImpl implements DocumentService {
         doc.setCreatedAt(LocalDateTime.now());
 
         User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
         doc.setUser(user);
+
+        // dodadov lista od docs vo user i sea gi dodavam za da mozat posle da se brisat avtomatski ako se izbrise korisnik i negovite dokumenti da se izbrisat
+        user.getDocuments().add(doc);
+
         Document savedDoc = documentRepository.save(doc);
         versionHistoryService.saveVersion(savedDoc);
 

@@ -29,8 +29,19 @@ public class TextCheckServiceImpl implements TextCheckService {
             String rawText = response.getBody();
 
             if (rawText == null || !rawText.contains("correction")) {
-                return List.of(Map.of("error", "Нема корекција."));
+                String lowerCaseText = originalText.toLowerCase();
+                requestBody.put("original", lowerCaseText);
+                requestEntity = new HttpEntity<>(requestBody, headers);
+
+                response = restTemplate.postForEntity(API_URL, requestEntity, String.class);
+                rawText = response.getBody();
+                System.out.println("RAW TEXT FROM API (lowercase): \n" + rawText);
+
+                if (rawText == null || !rawText.contains("correction")) {
+                    return List.of(Map.of("error", "Нема корекција."));
+                }
             }
+
 
             List<String> correctionValues = new ArrayList<>();
             for (String line : rawText.split("\n")) {
@@ -47,21 +58,32 @@ public class TextCheckServiceImpl implements TextCheckService {
                 String normalizedCorrection = correction.replace(" ", "").toLowerCase();
 
                 for (String word : originalWords) {
-                    String normalizedWord = word.toLowerCase();
+                    String wordStripped = word.replaceAll("[^\\p{L}\\p{N}]", "");
+                    String normalizedWord = wordStripped.toLowerCase();
 
-                    if (normalizedWord.equals(normalizedCorrection)) {
-                        corrections.add(Map.of("wrong", word, "correct", correction));
-                        break;
-                    }
+                    boolean isSimilar = normalizedWord.equals(normalizedCorrection)
+                            || (!normalizedWord.equals(normalizedCorrection)
+                            && normalizedWord.length() > 3
+                            && normalizedCorrection.length() > 3
+                            && TextUtils.levenshtein(normalizedWord, normalizedCorrection) <= 2);
 
-                    if (!normalizedWord.equals(correction.toLowerCase()) &&
-                            normalizedWord.length() > 3 &&
-                            correction.length() > 3 &&
-                            TextUtils.levenshtein(normalizedWord, correction.toLowerCase()) <= 2) {
-                        corrections.add(Map.of("wrong", word, "correct", correction));
-                        break;
+                    if (isSimilar) {
+                        String corrected = correction;
+                        if (!correction.isEmpty() && Character.isUpperCase(word.charAt(0))) {
+                            corrected = correction.substring(0, 1).toUpperCase() + correction.substring(1);
+                        }
+
+                        String trailingPunct = word.replaceAll(".*?(\\p{P}+)$", "$1");
+                        if (!trailingPunct.equals(word)) {
+                            corrected = corrected + trailingPunct;
+                        }
+
+                        if (corrections.stream().noneMatch(m -> m.get("wrong").equals(word))) {
+                            corrections.add(Map.of("wrong", word, "correct", corrected));
+                        }
                     }
                 }
+
             }
 
             if (corrections.isEmpty()) {

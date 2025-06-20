@@ -86,13 +86,13 @@
 
             <div class="px-3 pb-3">
                 <div sec:authorize="isAnonymous()">
-                    <a th:href="@{/register}" class="d-block text-primary mb-2">Sign Up</a>
-                    <a th:href="@{/login}" class="d-block text-primary">Login</a>
+                    <a th:href="@{/register}" class="btn btn-secondary d-block text-white mb-2">Sign Up</a>
+                    <a th:href="@{/login}" class="btn btn-secondary d-block text-white">Login</a>
                 </div>
 
                 <div sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post">
-                        <button type="submit" class="btn btn-link text-danger p-0">Logout</button>
+                        <button type="submit" class="btn btn-danger text-white">Logout</button>
                     </form>
                 </div>
             </div>
@@ -108,7 +108,6 @@
                 <div class="col-auto d-flex align-items-center gap-2">
                     <a class="btn btn-success" th:href="@{/documents/new}">New Document</a>
 
-                    <!--                    upload kopce-->
                     <!-- upload kopce -->
                     <form th:action="@{/documents/upload}" method="post" enctype="multipart/form-data" id="uploadForm"
                           class="d-inline">
