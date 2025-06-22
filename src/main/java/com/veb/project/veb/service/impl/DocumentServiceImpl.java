@@ -67,10 +67,6 @@ public class DocumentServiceImpl implements DocumentService {
     public Document getById(Long id) {
         return documentRepository.findById(id).orElseThrow();
     }
-
-    public List<Document> search(String query) {
-        return documentRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(query, query);
-    }
     @Transactional
     public void update(Document doc, String newContent) {
         versionHistoryService.saveVersion(doc);

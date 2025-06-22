@@ -19,7 +19,11 @@ public class TextCheckServiceImpl implements TextCheckService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, String> requestBody = new HashMap<>();
-        requestBody.put("original", originalText);
+        String cleanedText = originalText
+                .replaceAll("[.,!?;:]", "")
+                .toLowerCase();
+        requestBody.put("original", cleanedText);
+
 
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
         RestTemplate restTemplate = new RestTemplate();
@@ -28,20 +32,12 @@ public class TextCheckServiceImpl implements TextCheckService {
             ResponseEntity<String> response = restTemplate.postForEntity(API_URL, requestEntity, String.class);
             String rawText = response.getBody();
 
+            System.out.println("RAW FROM API:\n" + rawText);
+
+
             if (rawText == null || !rawText.contains("correction")) {
-                String lowerCaseText = originalText.toLowerCase();
-                requestBody.put("original", lowerCaseText);
-                requestEntity = new HttpEntity<>(requestBody, headers);
-
-                response = restTemplate.postForEntity(API_URL, requestEntity, String.class);
-                rawText = response.getBody();
-                System.out.println("RAW TEXT FROM API (lowercase): \n" + rawText);
-
-                if (rawText == null || !rawText.contains("correction")) {
-                    return List.of(Map.of("error", "Нема корекција."));
-                }
+                return List.of(Map.of("error", "Нема корекција."));
             }
-
 
             List<String> correctionValues = new ArrayList<>();
             for (String line : rawText.split("\n")) {
@@ -58,24 +54,19 @@ public class TextCheckServiceImpl implements TextCheckService {
                 String normalizedCorrection = correction.replace(" ", "").toLowerCase();
 
                 for (String word : originalWords) {
-                    String wordStripped = word.replaceAll("[^\\p{L}\\p{N}]", "");
-                    String normalizedWord = wordStripped.toLowerCase();
-
-                    boolean isSimilar = normalizedWord.equals(normalizedCorrection)
-                            || (!normalizedWord.equals(normalizedCorrection)
-                            && normalizedWord.length() > 3
-                            && normalizedCorrection.length() > 3
-                            && TextUtils.levenshtein(normalizedWord, normalizedCorrection) <= 2);
+                    String normalizedWord = word.replaceAll("[.,!?;:]", "").toLowerCase();
+                    boolean isSimilar = normalizedWord.equals(normalizedCorrection) ||
+                            (!normalizedWord.equals(normalizedCorrection)
+                                    && normalizedWord.length() > 3
+                                    && normalizedCorrection.length() > 3
+                                    && TextUtils.levenshtein(normalizedWord, normalizedCorrection) <= 2);
 
                     if (isSimilar) {
-                        String corrected = correction;
-                        if (!correction.isEmpty() && Character.isUpperCase(word.charAt(0))) {
-                            corrected = correction.substring(0, 1).toUpperCase() + correction.substring(1);
-                        }
+                        String punctuation = word.replaceAll("[^.,!?;:]+", "");
+                        String corrected = correction + punctuation;
 
-                        String trailingPunct = word.replaceAll(".*?(\\p{P}+)$", "$1");
-                        if (!trailingPunct.equals(word)) {
-                            corrected = corrected + trailingPunct;
+                        if (!correction.isEmpty() && Character.isUpperCase(word.charAt(0))) {
+                            corrected = corrected.substring(0, 1).toUpperCase() + corrected.substring(1);
                         }
 
                         if (corrections.stream().noneMatch(m -> m.get("wrong").equals(word))) {

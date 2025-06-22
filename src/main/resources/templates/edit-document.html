@@ -34,6 +34,14 @@
             line-height: 1.5;
             overflow-y: auto;
         }
+
+        .visually-hidden-textarea {
+            position: absolute;
+            left: -9999px;
+            height: 1px;
+            width: 1px;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -41,21 +49,21 @@
     <div class="row">
         <div class="col-8">
             <h2>Edit Document</h2>
-            <form th:action="@{'/documents/update/' + ${document.id}}" method="post" onsubmit="syncContent()">
+            <form th:action="@{'/documents/update/' + ${document.id}}" method="post" onsubmit="return syncContent()">
                 <input type="hidden" name="redirectBackTo" th:value="${redirectBackTo}"/>
+
                 <div class="mb-3">
                     <label class="form-label">Title</label>
                     <input class="form-control" th:value="${document.title}" disabled>
                 </div>
 
                 <div class="mb-3">
-                    <label for="contentInput" class="form-label">Content</label>
-                    <textarea id="contentInput" name="content" class="form-control d-none" rows="10" required
-                              th:text="${document.content}"></textarea>
+                    <label class="form-label">Content</label>
                     <div id="contentDisplay" contenteditable="true"
                          data-placeholder="Type or paste your text here..."
                          th:text="${document.content}">
                     </div>
+                    <textarea id="contentInput" name="content" class="visually-hidden-textarea" required></textarea>
                 </div>
 
                 <div class="mb-3 text-end">
@@ -89,7 +97,6 @@
         const contentDiv = document.getElementById("contentDisplay");
         const text = contentDiv.innerText.trim().replace(/\s+/g, ' ');
         document.getElementById("contentInput").value = text;
-
         correctionBoxVisible = false;
 
         fetch("http://localhost:8080/documents/check-text", {
@@ -116,7 +123,7 @@
                 let highlighted = text;
                 data.forEach(pair => {
                     const wrong = pair.wrong;
-                    const regex = new RegExp(`(?<!\\S)${escapeRegex(wrong)}(?!\\S)`, 'g');
+                    const regex = new RegExp(escapeRegex(wrong), 'g');
                     highlighted = highlighted.replace(regex, `<span class="wrong-underline">${wrong}</span>`);
                 });
                 contentDiv.innerHTML = highlighted;
@@ -142,8 +149,7 @@
             })
             .catch(err => {
                 console.error("JS FETCH ERROR:", err);
-                document.getElementById("correctionContent").innerHTML =
-                    `<div class="text-danger">Се случи грешка при проверка.</div>`;
+                document.getElementById("correctionContent").innerHTML = `<div class="text-danger">Се случи грешка при проверка.</div>`;
                 document.getElementById("grammarResult").classList.remove("d-none");
             });
     }
@@ -151,12 +157,9 @@
     function applySingleCorrection(wrong, correct, buttonElement) {
         const contentDiv = document.getElementById("contentDisplay");
         let html = contentDiv.innerHTML;
-
-        const spanRegex = new RegExp(`<span class="wrong-underline">\\s*${escapeRegex(wrong)}\\s*</span>`, 'g');
-        html = html.replace(spanRegex, correct);
-
+        const spanHtml = `<span class="wrong-underline">${wrong}</span>`;
+        html = html.replaceAll(spanHtml, correct);
         contentDiv.innerHTML = html;
-
         document.getElementById("contentInput").value = contentDiv.innerText;
 
         if (buttonElement && buttonElement.parentElement) {
@@ -175,7 +178,7 @@
         let text = contentDiv.innerText;
 
         corrections.forEach(pair => {
-            const regex = new RegExp(`(?<!\\S)${escapeRegex(pair.wrong)}(?!\\S)`, 'g');
+            const regex = new RegExp(escapeRegex(pair.wrong), 'g');
             text = text.replace(regex, pair.correct);
         });
 
@@ -185,7 +188,10 @@
     }
 
     function syncContent() {
-        document.getElementById("contentInput").value = document.getElementById("contentDisplay").innerText;
+        const contentDiv = document.getElementById("contentDisplay");
+        const contentInput = document.getElementById("contentInput");
+        contentInput.value = contentDiv.innerText.trim();
+        return true;
     }
 </script>
 

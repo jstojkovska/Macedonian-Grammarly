@@ -11,7 +11,6 @@ public interface DocumentService {
     List<Document> getAll();
     void deleteById(Long id);
     Document getById(Long id);
-    List<Document> search(String query);
     void update(Document doc, String newContent);
     List<Document> getAllForUser(String username);
     List<Document> searchByUsername(String username, String query);
