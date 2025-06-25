@@ -22,12 +22,11 @@ import java.util.Map;
 @Controller
 @RequestMapping("/history")
 public class VersionHistoryController {
-    private final VersionHistoryService versionHistoryService;
-    private final DocumentService documentService;
 
-    public VersionHistoryController(VersionHistoryService versionHistoryService, DocumentService documentService) {
+    private final VersionHistoryService versionHistoryService;
+
+    public VersionHistoryController(VersionHistoryService versionHistoryService) {
         this.versionHistoryService = versionHistoryService;
-        this.documentService = documentService;
     }
 
     @GetMapping("/versions")

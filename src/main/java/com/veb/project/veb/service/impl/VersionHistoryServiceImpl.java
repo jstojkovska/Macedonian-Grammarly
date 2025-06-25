@@ -13,6 +13,7 @@ import java.util.Map;
 
 @Service
 public class VersionHistoryServiceImpl implements VersionHistoryService {
+
     private final VersionHistoryRepository versionHistoryRepository;
     private final DocumentRepository documentRepository;
 
@@ -21,13 +22,16 @@ public class VersionHistoryServiceImpl implements VersionHistoryService {
 
         this.documentRepository = documentRepository;
     }
+
     public void saveVersion(Document oldDocument){
         VersionHistory vh=new VersionHistory(oldDocument.getTitle(),oldDocument.getContent(),oldDocument);
         versionHistoryRepository.save(vh);
     }
+
     public List<VersionHistory> getAll(Document document){
         return versionHistoryRepository.findByDocument(document);
     }
+
     public VersionHistory getById(Long id){
         return versionHistoryRepository.findById(id).orElseThrow(()->new RuntimeException("Version not found"));
     }

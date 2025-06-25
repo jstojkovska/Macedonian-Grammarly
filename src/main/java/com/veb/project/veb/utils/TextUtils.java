@@ -12,7 +12,6 @@ public class TextUtils {
                 else dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i][j - 1], dp[i - 1][j]));
             }
         }
-
         return dp[a.length()][b.length()];
     }
 }

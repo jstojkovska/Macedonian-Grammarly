@@ -32,7 +32,8 @@
                     <a th:href="@{'/admin/users/delete/' + ${user.id}}" class="btn btn-sm btn-danger"
                        onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                 </th:block>
-                <a th:href="@{'/admin/users/' + ${user.id} + '/documents'}" class="btn btn-sm btn-info">View Documents</a>            </td>
+                <a th:href="@{'/admin/users/' + ${user.id} + '/documents'}" class="btn btn-sm btn-info">View Documents</a>
+            </td>
         </tr>
         </tbody>
     </table>

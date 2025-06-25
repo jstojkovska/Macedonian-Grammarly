@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -66,8 +64,9 @@ public class DocumentController {
         }
         return "redirect:/documents/home";
     }
+
     @PostMapping("/upload")
-    public String handleFileUpload(@RequestParam("file") MultipartFile file, Principal principal) {
+    public String handleFileUpload(@RequestParam MultipartFile file, Principal principal) {
         if (principal != null) {
             String username = principal.getName();
             try {

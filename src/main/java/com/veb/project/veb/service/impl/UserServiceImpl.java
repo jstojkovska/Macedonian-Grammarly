@@ -17,15 +17,11 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final DocumentRepository documentRepository;
-    private final VersionHistoryRepository versionHistoryRepository;
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, DocumentRepository documentRepository, VersionHistoryRepository versionHistoryRepository) {
+
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.documentRepository = documentRepository;
-        this.versionHistoryRepository = versionHistoryRepository;
     }
-
 
     @Override
     public User registerUser(User user) {
